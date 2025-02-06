@@ -1,0 +1,12 @@
+insert the following into ~/.bash_profile
+alias ll='ls -l'
+
+HISTFILESIZE=1000000
+HISTSIZE=10000
+
+export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
+
+
+OR
+#for not root users to log to their own home dir.
+#export PROMPT_COMMAND='if [ "$(id -u)" -ne 0 ]; then echo "$(date "+%Y-%m-%d.%H:%M:%S") $(pwd) $(history 1)" >> ~/.logs/bash-history-$(date "+%Y-%m-%d").log; fi'

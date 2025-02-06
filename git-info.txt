@@ -1,0 +1,41 @@
+  224  2018-08-10 14:18:28 which git
+  225  2018-08-10 14:18:36 git init
+  227  2018-08-10 14:18:54 git add .
+  228  2018-08-10 14:19:11 git commit -m "First commit"
+  229  2018-08-10 14:20:24 git remote add origin https://github.com/m0rbo/notes.git
+  230  2018-08-10 14:20:33 git remote -v
+  231  2018-08-10 14:20:57 git push -u origin master
+  232  2018-08-10 14:40:36 git pull
+  233  2018-08-10 14:40:47 git push -u origin master
+  234  2018-08-10 14:44:09 git push --force -u origin master
+  235  2018-08-10 14:44:21 git push -u origin master
+  239  2018-08-10 14:49:39 ll .git/
+  241  2018-08-10 14:51:15 git status
+  242  2018-08-10 14:51:25 git add README
+  243  2018-08-10 14:51:31 git status
+
+  244  2018-08-10 14:51:48 git add .
+  245  2018-08-10 14:51:49 git status
+  246  2018-08-10 14:52:27 git commit -m "new updates"
+  247  2018-08-10 14:52:43 git status
+  248  2018-08-10 14:53:16 git push
+
+after adding new files to .gitignore if they already existed and now you want to ignore them,
+clear the cache then add all the files again.
+
+git rm -r --cached .
+
+or to delete 1 file:
+git rm -r --cached filename.txt
+
+now add all back:
+git add .
+
+or to add 1 file:
+git add filename.txt
+
+then commit:
+git commit -m "message"
+
+then push
+

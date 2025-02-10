@@ -29,9 +29,9 @@ done
   diff -q /tmp/tidlist.txt $TEMPFILE
         if [ $? -ne 0 ]
         then
-        #       cat /srv/www/htdocs/kernellist/$dyear-$dmonth.html;echo "http://192.168.0.46/kernellist/"|mail -s "New Kernels found" bendily@gmail.com
-       #         cat /tmp/tidlist.txt |mail -s "New TIDs found" bendily@gmail.com
-		cat $TEMPFILE2 |mail -s "New TIDs found" bendily@gmail.com
+        #       cat /srv/www/htdocs/kernellist/$dyear-$dmonth.html;echo "http://192.168.0.46/kernellist/"|mail -s "New Kernels found" <emailaddr@addr.com>
+       #         cat /tmp/tidlist.txt |mail -s "New TIDs found" <email@addr.com>
+		cat $TEMPFILE2 |mail -s "New TIDs found" <emailaddr@addr.com>
         fi
 
 #	done

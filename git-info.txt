@@ -39,3 +39,46 @@ git commit -m "message"
 
 then push
 
+
+Need a token?
+# Creating a token                                                              
+# 1. In the upper-right corner of any page, click your profile photo, then      
+#    click "Settings"                                                           
+#                                                                               
+# 2. In the left sidebar, click  "Developer settings".                          
+#                                                                               
+# 3. In the left sidebar, click "Personal access tokens".                       
+#                                                                               
+# 4. Click "Generate new token".                                                
+#                                                                               
+# 5. To give your token an expiration, select the "Expiration" drop-down menu,  
+#    then click a default or use the calendar picker.                           
+#                                                                               
+# 6. Select the scopes, or permissions, you'd like to grant this token. To use  
+#    your token to access repositories from the command line, select "repo".    
+#                                                                               
+#    Warning: Treat your tokens like passwords and keep them secret. When       
+#             working with the API, use tokens as environment variables         
+#             instead of hardcoding them into your programs.                    
+#                                                                               
+# 7. To use your token to authenticate to an organization that uses SAML        
+#    single sign-on, authorize the token. For more information, see             
+#    "Authorizing a personal access token for use with SAML single sign-on" [1] 
+#                                                                               
+#    in the GitHub Enterprise Cloud documentation.                              
+#    https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on
+#                                                                               
+# Using a token on the command line                                             
+# Once you have a token, you can enter it instead of your password when         
+# performing Git operations over HTTPS.                                         
+#                                                                               
+# For example, on the command line you would enter the following:               
+#   The prompt is kind of stupid.  It says "Enter username...", the label next  
+#   to the entry widget is named "PASSWORD"??                                   
+#                                                                               
+#   The next prompt will says "Enter Password....".                             
+                                                                                
+$ git clone https://github.com/username/repo.git                                
+Username: your_username                                                         
+Password: your_token                                                            
+                         

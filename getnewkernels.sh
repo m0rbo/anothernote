@@ -20,10 +20,12 @@ if [ ! -f /srv/www/htdocs/kernellist/$dyear-$dmonth.html ]
 then
 touch /srv/www/htdocs/kernellist/$dyear-$dmonth.html
 echo "<br><a href="http://192.168.0.46/kernellist/"> Home</a><br><br><br>" >> /srv/www/htdocs/kernellist/$dyear-$dmonth.html
+echo "<a href="https://lists.suse.com/pipermail/sle-updates/$dyear-$dmonth/thread.html"> $dyear-$dmonth-thread</a><br>" >>  /srv/www/htdocs/kernellist/$dyear-$dmonth.html
 cp /srv/www/htdocs/kernellist/$dyear-$dmonth.html /tmp/$dyear-$dmonth.html-$dnano
 else
 mv /srv/www/htdocs/kernellist/$dyear-$dmonth.html /tmp/$dyear-$dmonth.html-$dnano
 echo "<br><a href="http://192.168.0.46/kernellist/"> Home</a><br>" >> /srv/www/htdocs/kernellist/$dyear-$dmonth.html
+echo "<a href="https://lists.suse.com/pipermail/sle-updates/$dyear-$dmonth/thread.html"> $dyear-$dmonth-thread</a><br><br>" >>  /srv/www/htdocs/kernellist/$dyear-$dmonth.html
 fi
 
 #rm /srv/www/htdocs/kernellist/$dyear-$dmonth.html
@@ -45,7 +47,17 @@ then
 	echo "<a href="https://lists.suse.com/pipermail/sle-updates/$dyear-$dmonth/$i"> $dyear-$dmonth-$i</a>" >> /srv/www/htdocs/kernellist/$dyear-$dmonth.html
 	echo "<br>" >> /srv/www/htdocs/kernellist/$dyear-$dmonth.html
 	echo "<b>" >> /srv/www/htdocs/kernellist/$dyear-$dmonth.html
-	awk '/SUSE Linux Enterprise Server [0-9]/ { ver=$0 } /kernel-default-[0-9]/ { print ver "<br>\n" $0 }' < /tmp/$i |head -n2 >> /srv/www/htdocs/kernellist/$dyear-$dmonth.html
+	#grep "SUSE Linux Micro" /tmp/$i
+	#changed this awk to be more generic to pickup SLES and SLE Micro... Jun 4 2025.
+	#awk '/SUSE Linux Enterprise Server [0-9]/ { ver=$0 } /kernel-default-[0-9]/ { print ver "<br>\n" $0 }' < /tmp/$i |head -n2 >> /srv/www/htdocs/kernellist/$dyear-$dmonth.html
+	#awk '/* SUSE Linux / { ver=$0 } /kernel-default-[0-9]/ { print ver "<br>\n" $0 }' < /tmp/$i |head -n2 >> /srv/www/htdocs/kernellist/$dyear-$dmonth.html
+	#using an OR...
+	#This one was too greedy and picking up many other names... 
+	#awk '/SUSE Linux (Enterprise|Micro)/ { ver=$0 } /kernel-default-[0-9]/ { print ver "<br>\n" $0 }' < /tmp/$i |head -n2 >> /srv/www/htdocs/kernellist/$dyear-$dmonth.html
+	#On July 10, 2025 started using this one...
+#	awk '/SUSE Linux (Enterprise|Micro)/ { ver=$0 } /kernel-default-[0-9]/ { print ver "<br>\n" $0 }' < /tmp/$i|sed  '/SAP/,+1d'|sed  '/High/,+1d'|sed  '/Live/,+1d'|sed 's/(.*/<br>/' |head -n2 >> /srv/www/htdocs/kernellist/$dyear-$dmonth.html
+	awk '/SUSE Linux (Enterprise|Micro)/ { ver=$0 } /kernel-default-[0-9]/ { print ver "<br>\n" $0 }' < /tmp/$i|sed  '/SAP/,+1d'|sed  '/High/,+1d'|sed  '/Live/,+1d'|sed  '/Rancher/,+1d'|sed  '/Enterprise Micro/,+1d'|sed 's/(.*/<br>/' |head -n2 >> /srv/www/htdocs/kernellist/$dyear-$dmonth.html
+
 	echo "</b>" >> /srv/www/htdocs/kernellist/$dyear-$dmonth.html
 	echo "<br>" >> /srv/www/htdocs/kernellist/$dyear-$dmonth.html
 	grep "TITLE=\"SUSE-SU" /tmp/$i  >> /srv/www/htdocs/kernellist/$dyear-$dmonth.html
@@ -68,8 +80,8 @@ then
 	diff -q /srv/www/htdocs/kernellist/$dyear-$dmonth.html /tmp/$dyear-$dmonth.html-$dnano
 	if [ $? -ne 0 ]
 	then
-	#	cat /srv/www/htdocs/kernellist/$dyear-$dmonth.html;echo "http://192.168.0.46/kernellist/"|mail -s "New Kernels found" <emailaddr@email.com>
-		echo "http://192.168.0.46/kernellist/ $(cat /srv/www/htdocs/kernellist/$dyear-$dmonth.html|pandoc -f html -t plain)"|mail -s "New Kernels found" <emailaddr@email.com>
+	#	cat /srv/www/htdocs/kernellist/$dyear-$dmonth.html;echo "http://192.168.0.46/kernellist/"|mail -s "New Kernels found" bendily@gmail.com
+		echo "http://192.168.0.46/kernellist/ $(cat /srv/www/htdocs/kernellist/$dyear-$dmonth.html|pandoc -f html -t plain)"|mail -s "New Kernels found" bendily@gmail.com
 	fi
 fi
 #<a href="https://btrfs.wiki.kernel.org/index.php/Using_Btrfs_with_Multiple_Devices">BTRFS Wiki - Using Btrfs with Multiple Devices</a>

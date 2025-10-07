@@ -1,0 +1,26 @@
+mount /dev/<device name> /mnt
+# mount --rbind /proc /mnt/proc
+# mount --rbind /sys /mnt/sys
+# mount --rbind /dev /mnt/dev
+# mount --rbind /run /mnt/run
+
+
+# for i in proc sys dev run; do mount --rbind /$i /mnt/$i ; done
+
+chroot /mnt
+mount -a
+
+
+umount -a
+exit
+umount /x
+umount /mnt/dev/pts
+umount /mnt/dev/
+umount /mnt/sys
+umount /mnt/proc
+umount /mnt/run
+umount /mnt
+
+or
+
+awk '/\/mnt/ {print $2}' < /proc/mounts | sort -r | xargs umount

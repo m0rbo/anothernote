@@ -129,7 +129,7 @@
       su - hxeadm -c 'HDB start'
    ##   rsync -ahP rabble.domain.cloud::rabble/Team_Files/training/labs/sap/fulldeploy/crm_sap_part* /tmp/
    #Load CRM config options from SUSE SAP angi docs.
-   https://documentation.susr.com/sbp/sap-15/html/SLES4SAP-hana-angi-perfopt-15/index.html
+   https://documentation.suse.com/sbp/sap-15/html/SLES4SAP-hana-angi-perfopt-15/index.html
 
     # crm configure load update /hana/files/sap-full-crm/crm_sap_part1.txt
     # crm configure load update /hana/files/sap-full-crm/crm_sap_part2.txt

@@ -105,8 +105,7 @@ then
 	diff -q /srv/www/htdocs/kernellist/$dyear-$dmonth.html /tmp/$dyear-$dmonth.html-$dnano
 	if [ $? -ne 0 ]
 	then
-	#	cat /srv/www/htdocs/kernellist/$dyear-$dmonth.html;echo "http://192.168.0.46/kernellist/"|mail -s "New Kernels found" bendily@gmail.com
-		echo "http://192.168.0.46/kernellist/ $(cat /srv/www/htdocs/kernellist/$dyear-$dmonth.html|pandoc -f html -t plain)"|mail -s "New Kernels found" bendily@gmail.com
+		echo "http://192.168.0.46/kernellist/ $(cat /srv/www/htdocs/kernellist/$dyear-$dmonth.html|pandoc -f html -t plain)"|mail -s "New Kernels found" email@mail.come
 	fi
 fi
 #<a href="https://btrfs.wiki.kernel.org/index.php/Using_Btrfs_with_Multiple_Devices">BTRFS Wiki - Using Btrfs with Multiple Devices</a>

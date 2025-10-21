@@ -1,0 +1,48 @@
+check for snapshots:
+
+vim-cmd vmsvc/getallvms
+vim-cmd vmsvc/get.snapshotinfo <ID>
+
+for i in $(vim-cmd vmsvc/getallvms|awk '{print $1}'|grep -v Vmid); do vim-cmd vmsvc/get.snapshotinfo $i; done
+
+ADDING an existing HARDDISK fails! with no visible error or such.
+it's def a bug and noted here:
+https://github.com/fbelavenuto/arpl/issues/735
+https://williamlam.com/2022/12/heads-up-esxi-8-0-host-client-unable-to-attach-existing-virtual-disk-to-vm.html
+
+one of the comments says...
+The same thing happened to me, tube 2, solution one through terminal, add the hard drive,
+vim-cmd vmsvc/getallvms
+vim -cmd vmsvc/device.diskaddexisting 8/vmfs/volumes/vm2tbnvme/110lab/110lab.vmdk 0 0,
+
+examples:
+vim-cmd vmsvc/device.diskaddexisting <vmid> /vmfs/volumes/<path_to_datastore>/<vm_folder>/<diskname>.vmdk <controller_type> <unit_number>
+vim-cmd vmsvc/device.diskaddexisting 16 /vmfs/volumes/datastore1/my_vm/my_existing_disk.vmdk scsi0 1
+
+These two commands added the disks back for sles12smt:
+[root@esxhost:/vmfs/volumes/5b7a2382-d31b244a-b385-64006a74fa77/sles12smt] vim-cmd vmsvc/device.diskaddexisting 94 /vmfs/volumes/second4tb/sles12smt/sles12smt_1.vmdk scsi0 2
+[root@esxhost:/vmfs/volumes/5b7a2382-d31b244a-b385-64006a74fa77/sles12smt] vim-cmd vmsvc/device.diskaddexisting 94 /vmfs/volumes/second4tb/sles12smt/sles12smt_2.vmdk scsi1 1
+
+Get Virtual Machine Power State/Power state.
+These commands list the current power state and perform power operations using vmid obtained from the previous command:
+
+# vim-cmd vmsvc/power.getstate 12
+retrieved runtime info
+Powered off
+
+# vim-cmd vmsvc.power.on 12
+Powering on VM
+
+# vim-cmd vmsvc/power.shutdown 12
+# vim-cmd vmsvc/power.off 12
+# vim-cmd vmsvc/power.reset 12
+# vim-cmd vmsvc/power.suspend 12
+List registered Virtual Machines
+These commands list VM properties as per their VMX configuration file and their running state.
+
+# vim-cmd vmsvc/get.summary
+# vim-cmd vmsvc/get.summary 12 | grep uptimeSeconds
+# vim-cmd vmsvc/get.summary 8 | grep -i tools
+
+
+

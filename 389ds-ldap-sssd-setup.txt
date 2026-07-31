@@ -1,0 +1,235 @@
+setup 389ds in container with ssl/tls certs and configure sssd to point to 389ds...
+per: https://arminreiter.com/2022/01/create-your-own-certificate-authority-ca-using-openssl/
+1. create ssl certs (chose wisely)...
+
+CANAME=lab525rootca
+
+# optional, create a directory
+#mkdir $CANAME
+#cd $CANAME
+
+# generate aes encrypted private key
+openssl genrsa -aes256 -out $CANAME.key 4096
+
+# create certificate, 1826 days = 5 years
+openssl req -x509 -new -nodes -key $CANAME.key -sha256 -days 1826 -out $CANAME.crt -subj '/CN=lab525rootca/C=US/ST=Utah/L=PleasantGrove/O=SUSE'
+
+# create certificate for service
+MYCERT=myserver.local
+openssl req -new -nodes -out $MYCERT.csr -newkey rsa:4096 -keyout $MYCERT.key -subj '/CN=389ds/C=US/ST=Utah/L=PleasantGrove/O=SUSE'
+
+# create a v3 ext file for SAN properties
+cat > $MYCERT.v3.ext << EOF
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = myserver.local
+DNS.2 = myserver1.local
+IP.1 = 192.168.1.1
+IP.2 = 192.168.2.1
+EOF
+
+openssl x509 -req -in $MYCERT.csr -CA $CANAME.crt -CAkey $CANAME.key -CAcreateserial -out $MYCERT.crt -days 730 -sha256 -extfile $MYCERT.v3.ext
+
+
+2. create directories...
+per:https://www.port389.org/docs/389ds/howto/howto-deploy-389ds-on-openshift.html
+mkdir -p /home/389ds/data/tls/ca
+
+2a. copy cert files to dirs...
+server certs to data/tls/
+ca certs to data/tls/ca/
+
+ll data/tls/
+
+drwxr-xr-x. 1 root root   78 Jul 29 14:31 ca
+-rw-r--r--. 1 root root 2074 Jul 29 14:30 leap16.suse.crt
+-rw-------. 1 root root 3272 Jul 29 14:30 leap16.suse.key
+
+data/tls/ca/
+-rw-r--r--. 1 root root 1996 Jul 29 14:30 lab525rootca.crt
+-rw-------. 1 root root 3446 Jul 29 14:30 lab525rootca.key
+
+2b. copy cert file to server.crt and server.key
+cp /home/389ds/data/tls/leap16.suse.crt /home/389ds/data/tls/server.crt
+cp /home/389ds/data/tls/leap16.suse.key /home/389ds/data/tls/server.key
+
+3. run the container:
+https://registry.suse.com/repositories/suse-389-ds
+
+ podman run -d \
+    --name 389ds \
+    -e DS_SUFFIX_NAME="dc=lab-525,dc=suse,dc=com" \
+    -e DS_DM_PASSWORD="lab525dspw" \
+    -p 389:3389 \
+    -p 636:3636 \
+    -m 1024M \
+    -v "/home/389ds/data:/data:Z" \
+    --restart=unless-stopped \
+    registry.suse.com/suse/389-ds:latest
+
+4. create instance and populate it with info (chose wisely)
+inside the container..
+podman exec -it 389ds /bin/bash
+
+dsconf localhost backend create --suffix="dc=lab-525,dc=suse,dc=com" --be-name userRoot --create-suffix --create-entries
+
+Create local user (inside container):
+dsidm localhost user create --uid wilber --cn wilber --displayName 'Wilber Fox' --uidNumber 1001 --gidNumber 101 --homeDirectory /home/wilber
+Successfully created wilber
+
+4a. test:
+dsidm localhost --basedn dc=lab-525,dc=suse,dc=com user list
+demo_user
+wilber
+
+4b. set password:
+dsidm localhost account reset_password uid=wilber,ou=people,dc=lab-525,dc=suse,dc=com
+
+
+dsidm localhost --basedn dc=lab-525,dc=suse,dc=com user get   
+Enter uid to retrieve : wilber
+
+dsidm localhost account list                                    
+dc=lab-525,dc=suse,dc=com
+ou=groups,dc=lab-525,dc=suse,dc=com
+ou=people,dc=lab-525,dc=suse,dc=com
+ou=permissions,dc=lab-525,dc=suse,dc=com
+ou=services,dc=lab-525,dc=suse,dc=com
+uid=demo_user,ou=people,dc=lab-525,dc=suse,dc=com
+cn=demo_group,ou=Groups,dc=lab-525,dc=suse,dc=com
+uid=wilber,ou=people,dc=lab-525,dc=suse,dc=com
+
+
+dsconf localhost plugin list
+
+dsconf localhost plugin memberof enable
+Enabled plugin 'MemberOf Plugin'
+
+https://www.port389.org/docs/389ds/howto/howto-users-and-groups.html
+https://documentation.suse.com/sles/15-SP7/single-html/SLES-security/#sec-security-ldap-docker-container
+
+4c. restart container after enabling a plugin...
+podman rm 389ds
+podman run...
+
+5. check plugin and enable it for ldap tree...
+dsconf localhost plugin memberof fixup -f '(objectClass=*)' dc=lab-525,dc=suse,dc=com
+Adding fixup task entry...
+Successfully added task entry "cn=memberOf_fixup_2026-07-29T20:39:49.469327,cn=memberOf task,cn=tasks,cn=config". This task is running in the background. To track its progress you can use the "fixup-status" command.
+
+
+6. copy ca and server crt to client systems...
+ll /etc/pki/trust/anchors/
+total 12
+-rw-r--r-- 1 root root 1996 Jul 29 15:47 lab525rootca.crt
+-rw-r--r-- 1 root root 2074 Jul 29 15:47 leap16.suse.crt
+
+6a. run cmd:
+update-ca-certificates
+
+7. Test via ldap commands...
+ldapwhoami -D "uid=wilber,ou=people,dc=lab-525,dc=suse,dc=com" -W -H ldap://192.168.0.132
+Enter LDAP Password: 
+dn: uid=wilber,ou=people,dc=lab-525,dc=suse,dc=com
+
+#via ssl
+ldapwhoami -D "uid=wilber,ou=people,dc=lab-525,dc=suse,dc=com" -W -H ldap://myserver.local -Z
+
+ldapsearch -LLL -D "uid=wilber,ou=people,dc=lab-525,dc=suse,dc=com" -H ldap://myserver.local  -W -x -Z
+
+ldapsearch -LLL -D "uid=wilber,ou=people,dc=lab-525,dc=suse,dc=com" -H ldap://myserver.local  -W -x
+
+ldapsearch -LLL -D "cn=directory manager" -H ldap://myserver.local -s sub "(cn=tuxlinux2)" -W -x -Z
+
+echo ""|openssl s_client -showcerts -connect ldapserver:636
+
+
+
+8. add users via ldap/ldif...
+ldapmodify -h myserver.local -D "cn=directory manager" -W -f addkbmetz.ldif 
+###(Password is used in container startup "-e DS_DM_PASSWORD="lab525dspw")###
+
+cat addkbmetz.ldif
+###
+dn: uid=kbmetz,ou=people,dc=lab-525,dc=suse,dc=com
+changetype: add
+uid: kbmetz
+objectClass: top
+objectClass: account
+objectClass: posixaccount
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: inetUser
+objectClass: organizationalPerson
+userPassword: kbmetz
+uidNumber: 1011
+gidNumber: 1011
+sn: kbmetz
+homeDirectory: /home/kbmetz
+cn: kbmetz
+###
+
+
+9. configure sssd on another client 
+9a. copy 389ds server certs to the client...
+9b. configure sssd.conf...
+cat sssd.conf
+[sssd]
+config_file_version = 2
+services = nss, pam, ssh
+reconnection_retries = 3
+sbus_timeout = 30
+domains = 192.168.0.132
+debug_level = 9
+
+[nss]
+filter_users = root
+filter_groups = root
+#override_homedir = /home/system-oam/%u
+#override_shell = /bin/bash
+
+[pam]
+reconnection_retries = 3
+offline_credentials_expiration = 2
+offline_failed_login_attempts = 3
+offline_failed_login_delay = 5
+
+[domain/192.168.0.132]
+debug_level = 9
+id_provider = ldap
+auth_provider = ldap
+ldap_schema = rfc2307
+enumerate = false
+cache_credentials = false
+case_sensitive = true
+sudo_provider = ldap
+ldap_uri = ldap://myserver.local
+#ldap_search_base = ou=users,dc=example,dc=org
+#ldap_group_search_base = ou=users,dc=example,dc=org
+#ldap_default_bind_dn = cn=admin,dc=example,dc=org
+ldap_search_base = ou=people,dc=lab-525,dc=suse,dc=com
+ldap_group_search_base = ou=Groups,dc=lab-525,dc=suse,dc=com
+#ldap_default_bind_dn = cn=admin,dc=example,dc=org
+#ldap_default_authtok = 123456
+#ldap_group_object_class = posixGroup
+ldap_id_use_start_tls = true
+ldap_tls_reqcert = demand
+ldap_tls_cacert = /etc/pki/trust/anchors/lab525rootca.crt
+
+
+[sudo]
+
+10. enable pam for sssd...
+2) Configure PAM modules (I personally set them to create a home folder on login and set the umask for the new directory to 077)
+pam-config --add --sss && pam-config --add --mkhomedir --mkhomedir-umask=0077
+
+10a. edit /etc/nsswitch.conf
+passwd:		compat sss
+group:		compat sss
+
+11. profit.
+

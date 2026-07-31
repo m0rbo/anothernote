@@ -18,6 +18,8 @@ vim -cmd vmsvc/device.diskaddexisting 8/vmfs/volumes/vm2tbnvme/110lab/110lab.vmd
 examples:
 vim-cmd vmsvc/device.diskaddexisting <vmid> /vmfs/volumes/<path_to_datastore>/<vm_folder>/<diskname>.vmdk <controller_type> <unit_number>
 vim-cmd vmsvc/device.diskaddexisting 16 /vmfs/volumes/datastore1/my_vm/my_existing_disk.vmdk scsi0 1
+vmware example:
+https://knowledge.broadcom.com/external/article/309759/hot-adding-a-virtual-disk-to-a-virtual-m.html
 
 These two commands added the disks back for sles12smt:
 [root@esxhost:/vmfs/volumes/5b7a2382-d31b244a-b385-64006a74fa77/sles12smt] vim-cmd vmsvc/device.diskaddexisting 94 /vmfs/volumes/second4tb/sles12smt/sles12smt_1.vmdk scsi0 2

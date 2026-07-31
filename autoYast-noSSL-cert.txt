@@ -1,0 +1,11 @@
+use "?ssl_verify=no" in the URL...
+      <listentry>
+        <alias>SLE-Module-Basesystem15-SP7-Updates</alias>
+        <media_url><![CDATA[https://192.168.0.210/repo/SUSE/Updates/SLE-Module-Basesystem/15-SP7/x86_64/update?ssl_verify=no]]></media_url>
+        <name>SLE-Module-Basesystem15-SP7-Updates</name>
+        <product_dir/>
+      </listentry>
+
+
+working example in :
+/srv/www/htdocs/autoinst-157-nosslcert.xml
